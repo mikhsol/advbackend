@@ -16,11 +16,7 @@ from .models import (
 
 class StatsApiTests(TestCase):
 
-    def test_number_of_viewers(self):
-        '''
-        Returns the number of viewers of a given device and content in a given
-        time period
-        '''
+    def setUp(self):
         # Two devices
         d1 = Device.objects.create()
         d2 = Device.objects.create()
@@ -56,7 +52,7 @@ class StatsApiTests(TestCase):
             content=c1,
             device=d1, event_type='start',
             event_time=parse_datetime('2016-01-01 00:00:01'))
-        e2 = Event.objects.create(
+        sele2 = Event.objects.create(
             content=c1,
             device=d1, event_type='end',
             event_time=parse_datetime('2016-01-01 00:01:29'))
@@ -79,10 +75,13 @@ class StatsApiTests(TestCase):
             device=d2, event_type='end',
             event_time=parse_datetime('2016-01-01 00:01:29'))
 
-        # Result of GET to /viewer-count/?start='2016-01-01 00:00:00'& \
-        # end='2016-01-01 00:03:30'&device=1&content=1 should be
-        # {"start": "2016-01-01 00:00:00", "end": "2016-01-01 00:03:30",
-        # "device_id": 1, "content_id": 1 "views": 3}
+    def test_number_of_viewers(self):
+        '''
+        Returns the number of viewers of a given device and content in a given
+        time period.
+        If person see same content on same device several times, will concider
+        him/her as one person.
+        '''
         url = reverse('stats-app:viewer-count')
         response = self.client.get(url, {
             'start': '2016-01-01 00:00:00',
@@ -94,4 +93,24 @@ class StatsApiTests(TestCase):
         self.assertEqual(data['end'], '2016-01-01 00:03:30')
         self.assertEqual(data['device_id'], 1)
         self.assertEqual(data['content_id'], 1)
-        self.assertEqual(data['views'], 3)
+        self.assertEqual(data['views'], 2)
+
+    def test_average_age_of_viewers(self):
+        '''
+        Returns the average age of viewers of a given device and content in a
+        given time period.
+        If person see same content on same device several times, will concider
+        him/her as one person.
+        '''
+        url = reverse('stats-app:avg-age')
+        response = self.client.get(url, {
+            'start': '2016-01-01 00:00:00',
+            'end': '2016-01-01 00:03:30', 'device': 1, 'content': 1})
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(data['start'], '2016-01-01 00:00:00')
+        self.assertEqual(data['end'], '2016-01-01 00:03:30')
+        self.assertEqual(data['device_id'], 1)
+        self.assertEqual(data['content_id'], 1)
+        self.assertEqual(data['avg_age'], 31.5)
