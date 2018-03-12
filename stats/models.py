@@ -16,9 +16,9 @@ class Event(models.Model):
     )
 
     content = models.ForeignKey('Content', related_name='event_content',
-        on_delete=models.CASCADE)
+                                on_delete=models.CASCADE)
     device = models.ForeignKey('Device', related_name='event_device',
-        on_delete=models.CASCADE)
+                               on_delete=models.CASCADE)
     event_type = models.CharField(max_length=5, choices=EVENT_TYPES)
     event_time = models.DateTimeField()
 
@@ -30,7 +30,7 @@ class Person(models.Model):
     )
 
     device = models.ForeignKey('Device', related_name='person_device',
-        on_delete=models.CASCADE)
+                               on_delete=models.CASCADE)
     appears = models.DateTimeField()
     disappears = models.DateTimeField()
     age = models.PositiveIntegerField()
