@@ -31,7 +31,7 @@ class StatsApiTests(TestCase):
             device=d1,
             appears=parse_datetime('2016-01-01 00:00:00'),
             disappears=parse_datetime('2016-01-01 00:03:47'),
-            age=23, gender='female')
+            age=23, gender='male')
         p3 = Person.objects.create(
             device=d2,
             appears=parse_datetime('2016-01-01 00:00:31'),
@@ -114,3 +114,24 @@ class StatsApiTests(TestCase):
         self.assertEqual(data['device_id'], 1)
         self.assertEqual(data['content_id'], 1)
         self.assertEqual(data['avg_age'], 31.5)
+
+    def test_gender_distribution_of_viewers(self):
+        '''
+        Returns the gender distribution of the viewers of a given device and
+        content in a given time period.
+        If person see same content on same device several times, will concider
+        him/her as one person.
+        '''
+        url = reverse('stats-app:gender-dist')
+        response = self.client.get(url, {
+            'start': '2016-01-01 00:00:00',
+            'end': '2016-01-01 00:03:30', 'device': 1, 'content': 1})
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.content)
+        self.assertEqual(data['start'], '2016-01-01 00:00:00')
+        self.assertEqual(data['end'], '2016-01-01 00:03:30')
+        self.assertEqual(data['device_id'], 1)
+        self.assertEqual(data['content_id'], 1)
+        self.assertEqual(data['gender_dist']['male'], .50)
+        self.assertEqual(data['gender_dist']['female'], .50)

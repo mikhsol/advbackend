@@ -87,3 +87,16 @@ def avg_age(request):
         data['avg_age'] = 'No persons for events'
 
     return JsonResponse(data, status=200)
+
+@require_GET
+def gender_dist(request):
+    data = prepare_data(request.GET)
+    persons = get_persons(data)
+    cnt = len(persons)
+    data['gender_dist'] = {}
+    if cnt > 0:
+        males = len([p for p in persons if p.gender == 'male'])
+        data['gender_dist']['male'] = round(float(males)/cnt, 2)
+        data['gender_dist']['female'] = round(1.-data['gender_dist']['male'], 2)
+
+    return JsonResponse(data, status=200)
